@@ -1,17 +1,36 @@
 <template>
   <div class="properties-panel">
     <div class="panel-header">
-      <h3 class="panel-title">属性配置</h3>
-      <button v-if="selectedNode" class="close-btn" @click="closePanel">✕</button>
+      <h3 class="panel-title">
+        属性配置
+      </h3>
+      <button
+        v-if="selectedNode"
+        class="close-btn"
+        @click="closePanel"
+      >
+        ✕
+      </button>
     </div>
 
-    <div v-if="!selectedNode" class="empty-state">
-      <p class="empty-text">选择一个节点来配置属性</p>
+    <div
+      v-if="!selectedNode"
+      class="empty-state"
+    >
+      <p class="empty-text">
+        选择一个节点来配置属性
+      </p>
     </div>
 
-    <div v-else class="panel-content">
+    <div
+      v-else
+      class="panel-content"
+    >
       <div class="node-header">
-        <div class="node-type-badge" :style="{ borderColor: nodeTypeInfo.color }">
+        <div
+          class="node-type-badge"
+          :style="{ borderColor: nodeTypeInfo.color }"
+        >
           <span class="badge-label">{{ nodeTypeInfo.label }}</span>
         </div>
       </div>
@@ -24,7 +43,7 @@
           class="form-input" 
           :value="selectedNode.id" 
           disabled
-        />
+        >
       </div>
 
       <div class="form-section">
@@ -35,19 +54,33 @@
           class="form-input" 
           placeholder="输入节点名称"
           @input="updateProperties"
-        />
+        >
       </div>
 
       <!-- Agent节点配置 -->
       <template v-if="actualNodeType === 'agent'">
         <div class="form-section">
           <label class="form-label">Agent类型</label>
-          <select v-model="nodeProperties.agentType" class="form-select" @change="updateProperties">
-            <option value="llm">LLM智能体</option>
-            <option value="http">HTTP请求</option>
-            <option value="video-download">视频下载</option>
-            <option value="data-processor">数据处理</option>
-            <option value="custom">自定义</option>
+          <select
+            v-model="nodeProperties.agentType"
+            class="form-select"
+            @change="updateProperties"
+          >
+            <option value="llm">
+              LLM智能体
+            </option>
+            <option value="http">
+              HTTP请求
+            </option>
+            <option value="video-download">
+              视频下载
+            </option>
+            <option value="data-processor">
+              数据处理
+            </option>
+            <option value="custom">
+              自定义
+            </option>
           </select>
         </div>
 
@@ -55,10 +88,20 @@
         <template v-if="nodeProperties.agentType === 'llm'">
           <div class="form-section">
             <label class="form-label">LLM提供商</label>
-            <select v-model="nodeProperties.llmProvider" class="form-select" @change="updateProperties">
-              <option value="deepseek">DeepSeek</option>
-              <option value="chatgpt">ChatGPT</option>
-              <option value="claude">Claude</option>
+            <select
+              v-model="nodeProperties.llmProvider"
+              class="form-select"
+              @change="updateProperties"
+            >
+              <option value="deepseek">
+                DeepSeek
+              </option>
+              <option value="chatgpt">
+                ChatGPT
+              </option>
+              <option value="claude">
+                Claude
+              </option>
             </select>
           </div>
 
@@ -70,7 +113,7 @@
               class="form-input"
               placeholder="sk-..."
               @input="updateProperties"
-            />
+            >
           </div>
 
           <div class="form-section">
@@ -81,7 +124,7 @@
               placeholder="输入LLM提示词..."
               rows="4"
               @input="updateProperties"
-            ></textarea>
+            />
           </div>
 
           <div class="form-section">
@@ -92,7 +135,7 @@
               placeholder="定义LLM角色和行为..."
               rows="2"
               @input="updateProperties"
-            ></textarea>
+            />
           </div>
 
           <div class="form-section">
@@ -105,7 +148,7 @@
               max="1" 
               step="0.1"
               @input="updateProperties"
-            />
+            >
           </div>
 
           <div class="form-section">
@@ -117,7 +160,7 @@
               min="1"
               max="4000"
               @input="updateProperties"
-            />
+            >
           </div>
         </template>
 
@@ -131,16 +174,28 @@
               class="form-input"
               placeholder="https://api.example.com/data"
               @input="updateProperties"
-            />
+            >
           </div>
 
           <div class="form-section">
             <label class="form-label">请求方法</label>
-            <select v-model="nodeProperties.method" class="form-select" @change="updateProperties">
-              <option value="GET">GET</option>
-              <option value="POST">POST</option>
-              <option value="PUT">PUT</option>
-              <option value="DELETE">DELETE</option>
+            <select
+              v-model="nodeProperties.method"
+              class="form-select"
+              @change="updateProperties"
+            >
+              <option value="GET">
+                GET
+              </option>
+              <option value="POST">
+                POST
+              </option>
+              <option value="PUT">
+                PUT
+              </option>
+              <option value="DELETE">
+                DELETE
+              </option>
             </select>
           </div>
 
@@ -149,21 +204,24 @@
             <textarea 
               v-model="nodeProperties.headers" 
               class="form-textarea"
-              placeholder='{"Content-Type": "application/json"}'
+              placeholder="{&quot;Content-Type&quot;: &quot;application/json&quot;}"
               rows="3"
               @input="updateProperties"
-            ></textarea>
+            />
           </div>
 
-          <div class="form-section" v-if="nodeProperties.method !== 'GET'">
+          <div
+            v-if="nodeProperties.method !== 'GET'"
+            class="form-section"
+          >
             <label class="form-label">请求体 (JSON)</label>
             <textarea 
               v-model="nodeProperties.body" 
               class="form-textarea"
-              placeholder='{"key": "value"}'
+              placeholder="{&quot;key&quot;: &quot;value&quot;}"
               rows="4"
               @input="updateProperties"
-            ></textarea>
+            />
           </div>
         </template>
 
@@ -171,11 +229,23 @@
         <template v-if="nodeProperties.agentType === 'video-download'">
           <div class="form-section">
             <label class="form-label">平台</label>
-            <select v-model="nodeProperties.platform" class="form-select" @change="updateProperties">
-              <option value="douyin">抖音</option>
-              <option value="kuaishou">快手</option>
-              <option value="bilibili">哔哩哔哩</option>
-              <option value="youtube">YouTube</option>
+            <select
+              v-model="nodeProperties.platform"
+              class="form-select"
+              @change="updateProperties"
+            >
+              <option value="douyin">
+                抖音
+              </option>
+              <option value="kuaishou">
+                快手
+              </option>
+              <option value="bilibili">
+                哔哩哔哩
+              </option>
+              <option value="youtube">
+                YouTube
+              </option>
             </select>
           </div>
 
@@ -187,15 +257,25 @@
               class="form-input"
               placeholder="https://v.douyin.com/..."
               @input="updateProperties"
-            />
+            >
           </div>
 
           <div class="form-section">
             <label class="form-label">下载质量</label>
-            <select v-model="nodeProperties.quality" class="form-select" @change="updateProperties">
-              <option value="high">高清</option>
-              <option value="medium">标清</option>
-              <option value="low">流畅</option>
+            <select
+              v-model="nodeProperties.quality"
+              class="form-select"
+              @change="updateProperties"
+            >
+              <option value="high">
+                高清
+              </option>
+              <option value="medium">
+                标清
+              </option>
+              <option value="low">
+                流畅
+              </option>
             </select>
           </div>
         </template>
@@ -204,11 +284,23 @@
         <template v-if="nodeProperties.agentType === 'data-processor'">
           <div class="form-section">
             <label class="form-label">处理操作</label>
-            <select v-model="nodeProperties.operation" class="form-select" @change="updateProperties">
-              <option value="transform">转换</option>
-              <option value="filter">过滤</option>
-              <option value="aggregate">聚合</option>
-              <option value="sort">排序</option>
+            <select
+              v-model="nodeProperties.operation"
+              class="form-select"
+              @change="updateProperties"
+            >
+              <option value="transform">
+                转换
+              </option>
+              <option value="filter">
+                过滤
+              </option>
+              <option value="aggregate">
+                聚合
+              </option>
+              <option value="sort">
+                排序
+              </option>
             </select>
           </div>
 
@@ -217,10 +309,10 @@
             <textarea 
               v-model="nodeProperties.inputData" 
               class="form-textarea"
-              placeholder='{"data": [...]}'
+              placeholder="{&quot;data&quot;: [...]}"
               rows="4"
               @input="updateProperties"
-            ></textarea>
+            />
           </div>
         </template>
 
@@ -234,7 +326,7 @@
               class="form-input"
               placeholder="输入Agent名称"
               @input="updateProperties"
-            />
+            >
           </div>
 
           <div class="form-section">
@@ -242,10 +334,10 @@
             <textarea 
               v-model="nodeProperties.customConfig" 
               class="form-textarea"
-              placeholder='{"param1": "value1"}'
+              placeholder="{&quot;param1&quot;: &quot;value1&quot;}"
               rows="4"
               @input="updateProperties"
-            ></textarea>
+            />
           </div>
         </template>
       </template>
@@ -260,13 +352,18 @@
             class="form-input"
             placeholder="例如: value > 10"
             @input="updateProperties"
-          />
+          >
         </div>
 
         <div class="conditions-list">
           <div class="list-header">
             <span class="list-title">分支条件</span>
-            <button class="add-btn" @click="addCondition">+ 添加</button>
+            <button
+              class="add-btn"
+              @click="addCondition"
+            >
+              + 添加
+            </button>
           </div>
           
           <div 
@@ -280,15 +377,20 @@
               class="condition-input"
               placeholder="分支名称"
               @input="updateProperties"
-            />
+            >
             <input 
               v-model="condition.expression" 
               type="text" 
               class="condition-input"
               placeholder="条件表达式"
               @input="updateProperties"
-            />
-            <button class="remove-btn" @click="removeCondition(index)">✕</button>
+            >
+            <button
+              class="remove-btn"
+              @click="removeCondition(index)"
+            >
+              ✕
+            </button>
           </div>
         </div>
       </template>
@@ -297,9 +399,19 @@
       <template v-if="actualNodeType === 'subprocess'">
         <div class="form-section">
           <label class="form-label">子流程ID</label>
-          <select v-model="nodeProperties.workflowId" class="form-select" @change="updateProperties">
-            <option value="">选择子流程</option>
-            <option v-for="workflow in workflows" :key="workflow.id" :value="workflow.id">
+          <select
+            v-model="nodeProperties.workflowId"
+            class="form-select"
+            @change="updateProperties"
+          >
+            <option value="">
+              选择子流程
+            </option>
+            <option
+              v-for="workflow in workflows"
+              :key="workflow.id"
+              :value="workflow.id"
+            >
               {{ workflow.name }}
             </option>
           </select>
@@ -314,14 +426,17 @@
               v-model="nodeProperties.waitAll" 
               type="checkbox"
               @change="updateProperties"
-            />
+            >
             等待所有分支完成
           </label>
         </div>
       </template>
 
       <!-- 调试选项 -->
-      <div v-if="mode === 'debug'" class="debug-section">
+      <div
+        v-if="mode === 'debug'"
+        class="debug-section"
+      >
         <div class="section-header">
           <span class="section-title">调试选项</span>
         </div>

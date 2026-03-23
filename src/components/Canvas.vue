@@ -2,33 +2,61 @@
   <div class="canvas-container">
     <div class="canvas-toolbar">
       <div class="zoom-controls">
-        <button class="zoom-btn" @click="zoomOut" title="缩小">
+        <button
+          class="zoom-btn"
+          title="缩小"
+          @click="zoomOut"
+        >
           <span>−</span>
         </button>
         <span class="zoom-value">{{ Math.round(zoom * 100) }}%</span>
-        <button class="zoom-btn" @click="zoomIn" title="放大">
+        <button
+          class="zoom-btn"
+          title="放大"
+          @click="zoomIn"
+        >
           <span>+</span>
         </button>
-        <button class="zoom-btn" @click="resetZoom" title="重置">
+        <button
+          class="zoom-btn"
+          title="重置"
+          @click="resetZoom"
+        >
           <span>重置</span>
         </button>
       </div>
 
       <div class="canvas-actions">
-        <button class="action-btn" @click="fitView" title="适应画布">
+        <button
+          class="action-btn"
+          title="适应画布"
+          @click="fitView"
+        >
           <span>适应</span>
         </button>
-        <button class="action-btn" @click="clearCanvas" title="清空画布">
+        <button
+          class="action-btn"
+          title="清空画布"
+          @click="clearCanvas"
+        >
           <span>清空</span>
         </button>
       </div>
     </div>
 
-    <div ref="canvasRef" class="canvas-content" @drop="handleDrop" @dragover="handleDragOver"></div>
+    <div
+      ref="canvasRef"
+      class="canvas-content"
+      @drop="handleDrop"
+      @dragover="handleDragOver"
+    />
 
-    <div v-if="isRunning && currentExecutionNode" class="execution-overlay">
+    <div
+      v-if="isRunning && currentExecutionNode"
+      class="execution-overlay"
+    >
       <div class="execution-indicator">
-        <div class="indicator-pulse"></div>
+        <div class="indicator-pulse" />
         <span class="indicator-text">正在执行节点: {{ currentExecutionNode }}</span>
       </div>
     </div>

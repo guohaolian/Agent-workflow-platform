@@ -1,26 +1,50 @@
 <template>
-  <div class="debug-panel" :class="{ collapsed: isCollapsed }">
+  <div
+    class="debug-panel"
+    :class="{ collapsed: isCollapsed }"
+  >
     <div class="panel-header">
       <div class="header-left">
-        <h3 class="panel-title">执行日志</h3>
+        <h3 class="panel-title">
+          执行日志
+        </h3>
         <span class="log-count">{{ executionLog.length }} 条</span>
       </div>
       <div class="header-right">
-        <button class="icon-btn" @click="clearLogs" title="清空日志">
+        <button
+          class="icon-btn"
+          title="清空日志"
+          @click="clearLogs"
+        >
           <span>清空</span>
         </button>
-        <button class="icon-btn" @click="isCollapsed = !isCollapsed" title="折叠/展开">
+        <button
+          class="icon-btn"
+          title="折叠/展开"
+          @click="isCollapsed = !isCollapsed"
+        >
           <span>{{ isCollapsed ? '▼' : '▲' }}</span>
         </button>
       </div>
     </div>
 
-    <div v-if="!isCollapsed" class="panel-content">
-      <div v-if="executionLog.length === 0" class="empty-state">
-        <p class="empty-text">暂无执行日志</p>
+    <div
+      v-if="!isCollapsed"
+      class="panel-content"
+    >
+      <div
+        v-if="executionLog.length === 0"
+        class="empty-state"
+      >
+        <p class="empty-text">
+          暂无执行日志
+        </p>
       </div>
 
-      <div v-else class="log-list">
+      <div
+        v-else
+        class="log-list"
+      >
         <div 
           v-for="(log, index) in executionLog" 
           :key="index"
@@ -32,8 +56,13 @@
               <span class="log-node">{{ log.nodeName || log.nodeId }}</span>
               <span class="log-time">{{ formatTime(log.timestamp) }}</span>
             </div>
-            <div class="log-message">{{ log.message }}</div>
-            <div v-if="log.data" class="log-data">
+            <div class="log-message">
+              {{ log.message }}
+            </div>
+            <div
+              v-if="log.data"
+              class="log-data"
+            >
               <pre>{{ formatData(log.data) }}</pre>
             </div>
           </div>
@@ -42,7 +71,10 @@
     </div>
 
     <!-- 调试控制栏 -->
-    <div v-if="mode === 'debug' && !isCollapsed" class="debug-controls">
+    <div
+      v-if="mode === 'debug' && !isCollapsed"
+      class="debug-controls"
+    >
       <button 
         class="control-btn" 
         :disabled="!canExecute || isRunning"

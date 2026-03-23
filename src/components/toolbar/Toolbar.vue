@@ -6,36 +6,64 @@
       </div>
 
       <div class="workflow-info">
-        <input v-model="workflowName" class="workflow-name-input" placeholder="未命名工作流" @blur="updateWorkflowName" />
-        <span v-if="hasUnsavedChanges" class="unsaved-indicator">●</span>
+        <input
+          v-model="workflowName"
+          class="workflow-name-input"
+          placeholder="未命名工作流"
+          @blur="updateWorkflowName"
+        >
+        <span
+          v-if="hasUnsavedChanges"
+          class="unsaved-indicator"
+        >●</span>
       </div>
     </div>
 
     <div class="toolbar-center">
       <div class="mode-switch">
-        <button :class="['mode-btn', { active: mode === 'edit' }]" @click="switchMode('edit')">
+        <button
+          :class="['mode-btn', { active: mode === 'edit' }]"
+          @click="switchMode('edit')"
+        >
           <span>编辑</span>
         </button>
-        <button :class="['mode-btn', { active: mode === 'debug' }]" @click="switchMode('debug')">
+        <button
+          :class="['mode-btn', { active: mode === 'debug' }]"
+          @click="switchMode('debug')"
+        >
           <span>调试</span>
         </button>
       </div>
     </div>
 
     <div class="toolbar-right">
-      <button class="toolbar-btn" @click="loadExample">
+      <button
+        class="toolbar-btn"
+        @click="loadExample"
+      >
         <span>加载示例</span>
       </button>
 
-      <button class="toolbar-btn" @click="saveWorkflow" :disabled="!hasUnsavedChanges">
+      <button
+        class="toolbar-btn"
+        :disabled="!hasUnsavedChanges"
+        @click="saveWorkflow"
+      >
         <span>保存</span>
       </button>
 
-      <button class="toolbar-btn primary" @click="runWorkflow" :disabled="!canExecute">
+      <button
+        class="toolbar-btn primary"
+        :disabled="!canExecute"
+        @click="runWorkflow"
+      >
         <span>{{ isRunning ? '运行中...' : '运行' }}</span>
       </button>
 
-      <button class="toolbar-btn" @click="exportWorkflow">
+      <button
+        class="toolbar-btn"
+        @click="exportWorkflow"
+      >
         <span>导出</span>
       </button>
     </div>

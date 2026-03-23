@@ -1,21 +1,29 @@
 <template>
   <div class="node-panel">
     <div class="panel-header">
-      <h3 class="panel-title">节点库</h3>
-      <button class="collapse-btn" @click="collapsed = !collapsed">
+      <h3 class="panel-title">
+        节点库
+      </h3>
+      <button
+        class="collapse-btn"
+        @click="collapsed = !collapsed"
+      >
         <span v-if="collapsed">›</span>
         <span v-else>‹</span>
       </button>
     </div>
 
-    <div v-if="!collapsed" class="panel-content">
+    <div
+      v-if="!collapsed"
+      class="panel-content"
+    >
       <div class="search-box">
         <input 
           v-model="searchQuery" 
           type="text" 
           placeholder="搜索节点..."
           class="search-input"
-        />
+        >
       </div>
 
       <div class="node-list">
@@ -27,7 +35,10 @@
           @dragstart="handleDragStart($event, nodeType)"
           @dragend="handleDragEnd"
         >
-          <div class="node-icon-wrapper" :style="{ color: nodeType.color }">
+          <div
+            class="node-icon-wrapper"
+            :style="{ color: nodeType.color }"
+          >
             <SimpleIcon 
               v-if="nodeType.icon"
               :type="getIconType(nodeType.icon)"
@@ -36,14 +47,20 @@
             />
           </div>
           <div class="node-info">
-            <div class="node-label">{{ nodeType.label }}</div>
-            <div class="node-desc">{{ nodeType.config.description }}</div>
+            <div class="node-label">
+              {{ nodeType.label }}
+            </div>
+            <div class="node-desc">
+              {{ nodeType.config.description }}
+            </div>
           </div>
         </div>
       </div>
 
       <div class="agent-section">
-        <h4 class="section-title">已注册Agent</h4>
+        <h4 class="section-title">
+          已注册Agent
+        </h4>
         <div class="agent-list">
           <div 
             v-for="agent in registeredAgents" 
@@ -58,8 +75,12 @@
               />
             </div>
             <div class="agent-info">
-              <div class="agent-name">{{ agent.name }}</div>
-              <div class="agent-type">{{ agent.type }}</div>
+              <div class="agent-name">
+                {{ agent.name }}
+              </div>
+              <div class="agent-type">
+                {{ agent.type }}
+              </div>
             </div>
           </div>
         </div>

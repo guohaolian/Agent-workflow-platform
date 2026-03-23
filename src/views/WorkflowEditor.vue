@@ -1,16 +1,29 @@
 <template>
   <div class="workflow-editor">
-    <Toolbar @run="handleRun" @export="handleExport" @load-example="handleLoadExample" />
+    <Toolbar
+      @run="handleRun"
+      @export="handleExport"
+      @load-example="handleLoadExample"
+    />
 
     <div class="editor-layout">
       <NodePanel />
 
       <div class="editor-main">
-        <Canvas ref="canvasRef" @node-click="handleNodeClick" @node-update="handleNodeUpdate"
-          @graph-change="handleGraphChange" />
+        <Canvas
+          ref="canvasRef"
+          @node-click="handleNodeClick"
+          @node-update="handleNodeUpdate"
+          @graph-change="handleGraphChange"
+        />
 
-        <DebugPanel v-if="mode === 'debug'" @start-debug="handleStartDebug" @step-over="handleStepOver"
-          @resume="handleResume" @stop-debug="handleStopDebug" />
+        <DebugPanel
+          v-if="mode === 'debug'"
+          @start-debug="handleStartDebug"
+          @step-over="handleStepOver"
+          @resume="handleResume"
+          @stop-debug="handleStopDebug"
+        />
       </div>
 
       <PropertiesPanel @update-node="handleUpdateNode" />
