@@ -24,12 +24,7 @@
       </div>
     </div>
 
-    <div 
-      ref="canvasRef" 
-      class="canvas-content"
-      @drop="handleDrop"
-      @dragover="handleDragOver"
-    ></div>
+    <div ref="canvasRef" class="canvas-content" @drop="handleDrop" @dragover="handleDragOver"></div>
 
     <div v-if="isRunning && currentExecutionNode" class="execution-overlay">
       <div class="execution-indicator">
@@ -61,10 +56,12 @@ const emit = defineEmits(['node-click', 'node-update', 'graph-change'])
 onMounted(() => {
   initCanvas()
   window.addEventListener('resize', handleResize)
+  window.addEventListener('keydown', handleKeydown)
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
+  window.removeEventListener('keydown', handleKeydown)
   if (lf) {
     lf = null
   }
@@ -125,56 +122,56 @@ function initCanvas() {
 
 function handleDrop(event) {
   event.preventDefault()
-  
+
   if (!lf || !canvasRef.value) {
     console.warn('LogicFlow instance not initialized')
     return
   }
-  
+
   try {
     const data = JSON.parse(event.dataTransfer.getData('application/json'))
-    
+
     // 获取鼠标的屏幕坐标
     const clientX = event.clientX
     const clientY = event.clientY
-    
+
     // 使用 LogicFlow 的方法将屏幕坐标转换为画布逻辑坐标
     // getPointByClient 会自动处理缩放、平移和容器偏移
     let point = null
-    
+
     try {
       point = lf.getPointByClient(clientX, clientY)
     } catch (e) {
       console.warn('getPointByClient failed:', e)
     }
-    
+
     // 如果 getPointByClient 没有返回有效坐标，手动计算
-    if (!point || typeof point.x !== 'number' || typeof point.y !== 'number' || 
-        isNaN(point.x) || isNaN(point.y) || !isFinite(point.x) || !isFinite(point.y)) {
-      
+    if (!point || typeof point.x !== 'number' || typeof point.y !== 'number' ||
+      isNaN(point.x) || isNaN(point.y) || !isFinite(point.x) || !isFinite(point.y)) {
+
       // 获取画布容器的位置信息
       const containerRect = canvasRef.value.getBoundingClientRect()
-      
+
       // 计算鼠标相对于容器的坐标
       const containerX = clientX - containerRect.left
       const containerY = clientY - containerRect.top
-      
+
       // 获取 LogicFlow 的画布变换信息
       // LogicFlow 的 transform 包含 scaleX, scaleY, x, y (平移量)
       const transform = lf.getTransform()
-      
+
       // 手动转换坐标：考虑缩放和平移
       // LogicFlow 的坐标系统：逻辑坐标 = (容器坐标 - 平移) / 缩放
       const scaleX = transform.scaleX || transform.scale || 1
       const scaleY = transform.scaleY || transform.scale || 1
       const translateX = transform.x || 0
       const translateY = transform.y || 0
-      
+
       point = {
         x: (containerX - translateX) / scaleX,
         y: (containerY - translateY) / scaleY
       }
-      
+
       // 如果转换后的坐标还是无效，直接使用容器坐标（作为最后备用方案）
       if (isNaN(point.x) || isNaN(point.y) || !isFinite(point.x) || !isFinite(point.y)) {
         point = {
@@ -183,7 +180,7 @@ function handleDrop(event) {
         }
       }
     }
-    
+
     // 映射自定义节点类型到LogicFlow内置类型
     const typeMap = {
       'start': 'circle',
@@ -193,21 +190,21 @@ function handleDrop(event) {
       'subprocess': 'rect',
       'parallel': 'diamond'
     }
-    
+
     const lfType = typeMap[data.type] || 'rect'
-    
+
     const nodeConfig = {
       type: lfType,
       x: point.x,
       y: point.y,
       text: data.label,
-      properties: { 
+      properties: {
         ...data.config,
         customType: data.type,
         nodeColor: data.color
       }
     }
-    
+
     // 根据节点类型设置样式 - 清晰简洁的配色
     if (data.type === 'start') {
       nodeConfig.style = {
@@ -305,9 +302,49 @@ function clearCanvas() {
   }
 }
 
+function handleKeydown(event) {
+  // 避免在输入框中按 Delete/Backspace 误触删除节点
+  const target = event.target
+  const tag = target?.tagName
+  const isTypingTarget =
+    tag === 'INPUT' ||
+    tag === 'TEXTAREA' ||
+    target?.isContentEditable
+
+  if (isTypingTarget) return
+  if (!lf) return
+
+  if (event.key !== 'Delete' && event.key !== 'Backspace') return
+
+  const selectedId = nodeStore.selectedNode?.id
+  if (!selectedId) return
+
+  // LogicFlow 2.x API 兼容处理
+  let deleted = false
+  try {
+    if (typeof lf.deleteNode === 'function') {
+      lf.deleteNode(selectedId)
+      deleted = true
+    } else if (typeof lf.deleteElement === 'function') {
+      lf.deleteElement(selectedId)
+      deleted = true
+    } else if (lf.graphModel && typeof lf.graphModel.deleteNode === 'function') {
+      lf.graphModel.deleteNode(selectedId)
+      deleted = true
+    }
+  } catch (e) {
+    console.warn('Failed to delete node:', e)
+  }
+
+  if (deleted) {
+    event.preventDefault()
+    nodeStore.clearSelection()
+  }
+}
+
 function highlightExecutingNode(nodeId) {
   if (!lf) return
-  
+
   // 高亮当前执行节点
   const node = lf.getNodeModelById(nodeId)
   if (node) {
@@ -325,6 +362,18 @@ defineExpose({
         node.setProperties(properties)
       }
     }
+  },
+  deleteSelected: () => {
+    const selectedId = nodeStore.selectedNode?.id
+    if (!lf || !selectedId) return
+    if (typeof lf.deleteNode === 'function') {
+      lf.deleteNode(selectedId)
+    } else if (typeof lf.deleteElement === 'function') {
+      lf.deleteElement(selectedId)
+    } else if (lf.graphModel && typeof lf.graphModel.deleteNode === 'function') {
+      lf.graphModel.deleteNode(selectedId)
+    }
+    nodeStore.clearSelection()
   }
 })
 </script>
@@ -458,10 +507,13 @@ defineExpose({
 }
 
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
+
   50% {
     opacity: 0.5;
     transform: scale(1.1);

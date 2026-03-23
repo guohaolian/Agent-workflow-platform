@@ -49,11 +49,11 @@ function handleNodeClick(node) {
   nodeStore.selectNode(node)
 }
 
-function handleNodeUpdate(data) {
+function handleNodeUpdate(_data) {
   // 节点更新处理
 }
 
-function handleGraphChange(graphData) {
+function handleGraphChange(_graphData) {
   // 图数据变化处理
 }
 
@@ -64,6 +64,10 @@ function handleUpdateNode({ id, properties }) {
 }
 
 async function handleRun() {
+  if (workflowStore.isRunning) {
+    return
+  }
+
   const graphData = canvasRef.value?.getGraphData()
   if (!graphData || graphData.nodes.length === 0) {
     alert('请先添加节点')

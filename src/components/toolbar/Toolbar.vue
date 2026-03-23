@@ -4,30 +4,19 @@
       <div class="logo">
         <span class="logo-text">AgentFlow</span>
       </div>
-      
+
       <div class="workflow-info">
-        <input 
-          v-model="workflowName" 
-          class="workflow-name-input"
-          placeholder="未命名工作流"
-          @blur="updateWorkflowName"
-        />
+        <input v-model="workflowName" class="workflow-name-input" placeholder="未命名工作流" @blur="updateWorkflowName" />
         <span v-if="hasUnsavedChanges" class="unsaved-indicator">●</span>
       </div>
     </div>
 
     <div class="toolbar-center">
       <div class="mode-switch">
-        <button 
-          :class="['mode-btn', { active: mode === 'edit' }]"
-          @click="switchMode('edit')"
-        >
+        <button :class="['mode-btn', { active: mode === 'edit' }]" @click="switchMode('edit')">
           <span>编辑</span>
         </button>
-        <button 
-          :class="['mode-btn', { active: mode === 'debug' }]"
-          @click="switchMode('debug')"
-        >
+        <button :class="['mode-btn', { active: mode === 'debug' }]" @click="switchMode('debug')">
           <span>调试</span>
         </button>
       </div>
@@ -37,11 +26,11 @@
       <button class="toolbar-btn" @click="loadExample">
         <span>加载示例</span>
       </button>
-      
+
       <button class="toolbar-btn" @click="saveWorkflow" :disabled="!hasUnsavedChanges">
         <span>保存</span>
       </button>
-      
+
       <button class="toolbar-btn primary" @click="runWorkflow" :disabled="!canExecute">
         <span>{{ isRunning ? '运行中...' : '运行' }}</span>
       </button>
@@ -54,7 +43,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useWorkflowStore } from '@/stores/workflow'
 
 const workflowStore = useWorkflowStore()
@@ -65,6 +54,14 @@ const mode = computed(() => workflowStore.mode)
 const hasUnsavedChanges = computed(() => workflowStore.hasUnsavedChanges)
 const canExecute = computed(() => workflowStore.canExecute)
 const isRunning = computed(() => workflowStore.isRunning)
+
+watch(
+  () => workflowStore.currentWorkflow,
+  (wf) => {
+    workflowName.value = wf?.name || '新建工作流'
+  },
+  { immediate: true }
+)
 
 const emit = defineEmits(['run', 'export', 'load-example'])
 
