@@ -5,17 +5,17 @@
 
 // LLM配置
 const LLM_CONFIGS = {
-  'deepseek': {
+  deepseek: {
     name: 'DeepSeek',
     apiUrl: 'https://api.deepseek.com/v1/chat/completions',
     model: 'deepseek-chat'
   },
-  'chatgpt': {
+  chatgpt: {
     name: 'ChatGPT',
     apiUrl: 'https://api.openai.com/v1/chat/completions',
     model: 'gpt-3.5-turbo'
   },
-  'claude': {
+  claude: {
     name: 'Claude',
     apiUrl: 'https://api.anthropic.com/v1/messages',
     model: 'claude-3-sonnet-20240229'
@@ -37,9 +37,9 @@ export class RealAgentExecutor {
    */
   async execute() {
     const agentType = this.config.agentType || 'custom'
-    
+
     console.log(`🤖 执行 ${agentType} Agent:`, this.node.text)
-    
+
     try {
       switch (agentType) {
         case 'llm':
@@ -94,7 +94,7 @@ export class RealAgentExecutor {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
+          Authorization: `Bearer ${apiKey}`
         },
         body: JSON.stringify({
           model: llmConfig.model,
@@ -112,7 +112,7 @@ export class RealAgentExecutor {
       }
 
       const data = await response.json()
-      
+
       return {
         success: true,
         provider: llmProvider,
@@ -216,7 +216,8 @@ export class RealAgentExecutor {
         quality: quality,
         size: '15.6 MB',
         thumbnail: 'https://example.com/thumb.jpg',
-        description: '这是一个模拟的视频下载结果。实际使用时需要集成抖音、快手等平台的视频解析API。',
+        description:
+          '这是一个模拟的视频下载结果。实际使用时需要集成抖音、快手等平台的视频解析API。',
         stats: {
           views: 125600,
           likes: 8520,
@@ -276,7 +277,7 @@ export class RealAgentExecutor {
    */
   async executeCustom() {
     const agentName = this.config.agentName || '自定义Agent'
-    
+
     console.log(`🔧 执行自定义Agent: ${agentName}`)
 
     await this.sleep(1000)
@@ -304,92 +305,147 @@ export class RealAgentExecutor {
  * 创建预设的智能体工作流示例
  */
 export function createDouyinVideoWorkflow() {
+  const nodes = [
+    {
+      id: 'start-1',
+      type: 'circle',
+      x: 300,
+      y: 100,
+      text: '开始',
+      properties: {
+        customType: 'start'
+      }
+    },
+    {
+      id: 'agent-1',
+      type: 'rect',
+      x: 300,
+      y: 200,
+      text: 'LLM内容分析',
+      properties: {
+        customType: 'agent',
+        agentType: 'llm',
+        llmProvider: 'deepseek',
+        prompt: '分析这个抖音视频是否值得下载保存',
+        systemPrompt: '你是一个视频内容分析专家',
+        temperature: 0.7,
+        maxTokens: 500,
+        apiKey: ''
+      }
+    },
+    {
+      id: 'condition-1',
+      type: 'diamond',
+      x: 300,
+      y: 320,
+      text: '是否值得下载?',
+      properties: {
+        customType: 'condition',
+        expression: 'score > 7'
+      }
+    },
+    {
+      id: 'agent-2',
+      type: 'rect',
+      x: 180,
+      y: 440,
+      text: '下载视频',
+      properties: {
+        customType: 'agent',
+        agentType: 'video-download',
+        platform: 'douyin',
+        videoUrl: 'https://v.douyin.com/example',
+        quality: 'high'
+      }
+    },
+    {
+      id: 'agent-3',
+      type: 'rect',
+      x: 420,
+      y: 440,
+      text: '跳过下载',
+      properties: {
+        customType: 'agent',
+        agentType: 'custom',
+        agentName: '记录跳过'
+      }
+    },
+    {
+      id: 'end-1',
+      type: 'circle',
+      x: 300,
+      y: 560,
+      text: '结束',
+      properties: {
+        customType: 'end'
+      }
+    }
+  ]
+
+  const nodeById = new Map(nodes.map(n => [n.id, n]))
+
+  function inferAnchorIds(sourceNodeId, targetNodeId) {
+    const source = nodeById.get(sourceNodeId)
+    const target = nodeById.get(targetNodeId)
+    if (!source || !target) {
+      return {}
+    }
+
+    const dx = (target.x ?? 0) - (source.x ?? 0)
+    const dy = (target.y ?? 0) - (source.y ?? 0)
+
+    // LogicFlow 内置节点默认锚点: 0=上, 1=右, 2=下, 3=左
+    let sourceAnchorSuffix = '2'
+    let targetAnchorSuffix = '0'
+
+    if (Math.abs(dx) > Math.abs(dy)) {
+      // 横向为主：从左右连接
+      if (dx >= 0) {
+        sourceAnchorSuffix = '1'
+        targetAnchorSuffix = '3'
+      } else {
+        sourceAnchorSuffix = '3'
+        targetAnchorSuffix = '1'
+      }
+    } else {
+      // 纵向为主：从上下连接
+      if (dy >= 0) {
+        sourceAnchorSuffix = '2'
+        targetAnchorSuffix = '0'
+      } else {
+        sourceAnchorSuffix = '0'
+        targetAnchorSuffix = '2'
+      }
+    }
+
+    return {
+      sourceAnchorId: `${sourceNodeId}_${sourceAnchorSuffix}`,
+      targetAnchorId: `${targetNodeId}_${targetAnchorSuffix}`
+    }
+  }
+
+  function makeEdge(id, sourceNodeId, targetNodeId, properties) {
+    return {
+      id,
+      type: 'polyline',
+      sourceNodeId,
+      targetNodeId,
+      ...inferAnchorIds(sourceNodeId, targetNodeId),
+      ...(properties ? { properties } : {})
+    }
+  }
+
   return {
     name: '抖音视频分析下载流程',
     description: '使用LLM分析视频内容并下载',
-    nodes: [
-      {
-        id: 'start-1',
-        type: 'circle',
-        x: 300,
-        y: 100,
-        text: '开始',
-        properties: {
-          customType: 'start'
-        }
-      },
-      {
-        id: 'agent-1',
-        type: 'rect',
-        x: 300,
-        y: 200,
-        text: 'LLM内容分析',
-        properties: {
-          customType: 'agent',
-          agentType: 'llm',
-          llmProvider: 'deepseek',
-          prompt: '分析这个抖音视频是否值得下载保存',
-          systemPrompt: '你是一个视频内容分析专家',
-          temperature: 0.7,
-          maxTokens: 500,
-          apiKey: ''
-        }
-      },
-      {
-        id: 'condition-1',
-        type: 'diamond',
-        x: 300,
-        y: 320,
-        text: '是否值得下载?',
-        properties: {
-          customType: 'condition',
-          expression: 'score > 7'
-        }
-      },
-      {
-        id: 'agent-2',
-        type: 'rect',
-        x: 180,
-        y: 440,
-        text: '下载视频',
-        properties: {
-          customType: 'agent',
-          agentType: 'video-download',
-          platform: 'douyin',
-          videoUrl: 'https://v.douyin.com/example',
-          quality: 'high'
-        }
-      },
-      {
-        id: 'agent-3',
-        type: 'rect',
-        x: 420,
-        y: 440,
-        text: '跳过下载',
-        properties: {
-          customType: 'agent',
-          agentType: 'custom',
-          agentName: '记录跳过'
-        }
-      },
-      {
-        id: 'end-1',
-        type: 'circle',
-        x: 300,
-        y: 560,
-        text: '结束',
-        properties: {
-          customType: 'end'
-        }
-      }
-    ],
+    nodes,
     edges: [
-      { id: 'edge-1', sourceNodeId: 'start-1', targetNodeId: 'agent-1' },
-      { id: 'edge-2', sourceNodeId: 'agent-1', targetNodeId: 'condition-1' },
-      { id: 'edge-3', sourceNodeId: 'condition-1', targetNodeId: 'agent-2', properties: { condition: 'true' } },
-      { id: 'edge-4', sourceNodeId: 'condition-1', targetNodeId: 'agent-3', properties: { condition: 'false' } },
-      { id: 'edge-5', sourceNodeId: 'agent-2', targetNodeId: 'end-1' },
-      { id: 'edge-6', sourceNodeId: 'agent-3', targetNodeId: 'end-1' }
+      makeEdge('edge-1', 'start-1', 'agent-1'),
+      makeEdge('edge-2', 'agent-1', 'condition-1'),
+      makeEdge('edge-3', 'condition-1', 'agent-2', { condition: 'true' }),
+      makeEdge('edge-4', 'condition-1', 'agent-3', { condition: 'false' }),
+      makeEdge('edge-5', 'agent-2', 'end-1'),
+      makeEdge('edge-6', 'agent-3', 'end-1')
     ]
   }
 }
