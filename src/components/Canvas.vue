@@ -79,7 +79,7 @@ let lf = null
 const isRunning = computed(() => workflowStore.isRunning)
 const currentExecutionNode = computed(() => workflowStore.currentExecutionNode)
 
-const emit = defineEmits(['node-click', 'node-update', 'graph-change'])
+const emit = defineEmits(['node-click', 'node-update', 'graph-change', 'edge-click'])
 
 onMounted(() => {
   initCanvas()
@@ -119,8 +119,19 @@ function initCanvas() {
     emit('node-click', data)
   })
 
+  // 监听连线点击事件
+  lf.on('edge:click', ({ data }) => {
+    nodeStore.selectEdge(data)
+    emit('edge-click', data)
+  })
+
+  // 点击空白区域清空选中
+  lf.on('blank:click', () => {
+    nodeStore.clearSelection()
+  })
+
   // 监听节点双击事件
-  lf.on('node:dblclick', ({ data }) => {
+  lf.on('node:dblclick', ({ data: _data }) => {
     // 可以打开配置面板或其他操作
   })
 
@@ -132,7 +143,7 @@ function initCanvas() {
   })
 
   // 监听边的添加
-  lf.on('edge:add', ({ data }) => {
+  lf.on('edge:add', ({ data: _data }) => {
     const graphData = lf.getGraphData()
     workflowStore.updateGraphData(graphData)
   })
@@ -344,20 +355,25 @@ function handleKeydown(event) {
 
   if (event.key !== 'Delete' && event.key !== 'Backspace') return
 
-  const selectedId = nodeStore.selectedNode?.id
+  const selectedNodeId = nodeStore.selectedNode?.id
+  const selectedEdgeId = nodeStore.selectedEdge?.id
+  const selectedId = selectedNodeId || selectedEdgeId
   if (!selectedId) return
 
   // LogicFlow 2.x API 兼容处理
   let deleted = false
   try {
-    if (typeof lf.deleteNode === 'function') {
-      lf.deleteNode(selectedId)
+    if (selectedNodeId && typeof lf.deleteNode === 'function') {
+      lf.deleteNode(selectedNodeId)
       deleted = true
     } else if (typeof lf.deleteElement === 'function') {
       lf.deleteElement(selectedId)
       deleted = true
+    } else if (selectedEdgeId && typeof lf.deleteEdge === 'function') {
+      lf.deleteEdge(selectedEdgeId)
+      deleted = true
     } else if (lf.graphModel && typeof lf.graphModel.deleteNode === 'function') {
-      lf.graphModel.deleteNode(selectedId)
+      lf.graphModel.deleteNode(selectedNodeId)
       deleted = true
     }
   } catch (e) {
@@ -391,15 +407,27 @@ defineExpose({
       }
     }
   },
+  updateEdge: (edgeId, properties) => {
+    if (lf) {
+      const edge = lf.getEdgeModelById(edgeId)
+      if (edge) {
+        edge.setProperties(properties)
+      }
+    }
+  },
   deleteSelected: () => {
-    const selectedId = nodeStore.selectedNode?.id
+    const selectedNodeId = nodeStore.selectedNode?.id
+    const selectedEdgeId = nodeStore.selectedEdge?.id
+    const selectedId = selectedNodeId || selectedEdgeId
     if (!lf || !selectedId) return
-    if (typeof lf.deleteNode === 'function') {
-      lf.deleteNode(selectedId)
+    if (selectedNodeId && typeof lf.deleteNode === 'function') {
+      lf.deleteNode(selectedNodeId)
     } else if (typeof lf.deleteElement === 'function') {
       lf.deleteElement(selectedId)
+    } else if (selectedEdgeId && typeof lf.deleteEdge === 'function') {
+      lf.deleteEdge(selectedEdgeId)
     } else if (lf.graphModel && typeof lf.graphModel.deleteNode === 'function') {
-      lf.graphModel.deleteNode(selectedId)
+      lf.graphModel.deleteNode(selectedNodeId)
     }
     nodeStore.clearSelection()
   }

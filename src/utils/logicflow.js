@@ -91,9 +91,8 @@ export function initLogicFlow(container, options = {}) {
  * 注册自定义节点
  * 使用简化的节点定义方式
  */
-export function registerCustomNodes(lf) {
+export function registerCustomNodes(_lf) {
   // 由于 LogicFlow 2.0 的基类可能不同，我们使用内置节点类型并自定义样式
-  
   // 这里不需要复杂的自定义节点
   // LogicFlow 会根据配置自动应用样式
   // 我们只需要确保节点类型存在即可

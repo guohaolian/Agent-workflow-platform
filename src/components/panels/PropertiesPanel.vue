@@ -5,7 +5,7 @@
         属性配置
       </h3>
       <button
-        v-if="selectedNode"
+        v-if="selectedNode || selectedEdge"
         class="close-btn"
         @click="closePanel"
       >
@@ -14,11 +14,11 @@
     </div>
 
     <div
-      v-if="!selectedNode"
+      v-if="!selectedNode && !selectedEdge"
       class="empty-state"
     >
       <p class="empty-text">
-        选择一个节点来配置属性
+        选择一个节点或连线来配置属性
       </p>
     </div>
 
@@ -26,428 +26,461 @@
       v-else
       class="panel-content"
     >
-      <div class="node-header">
-        <div
-          class="node-type-badge"
-          :style="{ borderColor: nodeTypeInfo.color }"
-        >
-          <span class="badge-label">{{ nodeTypeInfo.label }}</span>
-        </div>
-      </div>
-
-      <!-- 基础信息 -->
-      <div class="form-section">
-        <label class="form-label">节点ID</label>
-        <input 
-          type="text" 
-          class="form-input" 
-          :value="selectedNode.id" 
-          disabled
-        >
-      </div>
-
-      <div class="form-section">
-        <label class="form-label">节点名称</label>
-        <input 
-          v-model="nodeProperties.text" 
-          type="text" 
-          class="form-input" 
-          placeholder="输入节点名称"
-          @input="updateProperties"
-        >
-      </div>
-
-      <!-- Agent节点配置 -->
-      <template v-if="actualNodeType === 'agent'">
-        <div class="form-section">
-          <label class="form-label">Agent类型</label>
-          <select
-            v-model="nodeProperties.agentType"
-            class="form-select"
-            @change="updateProperties"
-          >
-            <option value="llm">
-              LLM智能体
-            </option>
-            <option value="http">
-              HTTP请求
-            </option>
-            <option value="video-download">
-              视频下载
-            </option>
-            <option value="data-processor">
-              数据处理
-            </option>
-            <option value="custom">
-              自定义
-            </option>
-          </select>
-        </div>
-
-        <!-- LLM配置 -->
-        <template v-if="nodeProperties.agentType === 'llm'">
-          <div class="form-section">
-            <label class="form-label">LLM提供商</label>
-            <select
-              v-model="nodeProperties.llmProvider"
-              class="form-select"
-              @change="updateProperties"
-            >
-              <option value="deepseek">
-                DeepSeek
-              </option>
-              <option value="chatgpt">
-                ChatGPT
-              </option>
-              <option value="claude">
-                Claude
-              </option>
-            </select>
-          </div>
-
-          <div class="form-section">
-            <label class="form-label">API Key (可选,不填使用模拟)</label>
-            <input 
-              v-model="nodeProperties.apiKey" 
-              type="password"
-              class="form-input"
-              placeholder="sk-..."
-              @input="updateProperties"
-            >
-          </div>
-
-          <div class="form-section">
-            <label class="form-label">提示词</label>
-            <textarea 
-              v-model="nodeProperties.prompt" 
-              class="form-textarea"
-              placeholder="输入LLM提示词..."
-              rows="4"
-              @input="updateProperties"
-            />
-          </div>
-
-          <div class="form-section">
-            <label class="form-label">系统提示词</label>
-            <textarea 
-              v-model="nodeProperties.systemPrompt" 
-              class="form-textarea"
-              placeholder="定义LLM角色和行为..."
-              rows="2"
-              @input="updateProperties"
-            />
-          </div>
-
-          <div class="form-section">
-            <label class="form-label">温度 ({{ nodeProperties.temperature }})</label>
-            <input 
-              v-model="nodeProperties.temperature" 
-              type="range" 
-              class="form-range"
-              min="0" 
-              max="1" 
-              step="0.1"
-              @input="updateProperties"
-            >
-          </div>
-
-          <div class="form-section">
-            <label class="form-label">最大Token数</label>
-            <input 
-              v-model="nodeProperties.maxTokens" 
-              type="number" 
-              class="form-input"
-              min="1"
-              max="4000"
-              @input="updateProperties"
-            >
-          </div>
-        </template>
-
-        <!-- HTTP请求配置 -->
-        <template v-if="nodeProperties.agentType === 'http'">
-          <div class="form-section">
-            <label class="form-label">请求URL</label>
-            <input 
-              v-model="nodeProperties.url" 
-              type="text"
-              class="form-input"
-              placeholder="https://api.example.com/data"
-              @input="updateProperties"
-            >
-          </div>
-
-          <div class="form-section">
-            <label class="form-label">请求方法</label>
-            <select
-              v-model="nodeProperties.method"
-              class="form-select"
-              @change="updateProperties"
-            >
-              <option value="GET">
-                GET
-              </option>
-              <option value="POST">
-                POST
-              </option>
-              <option value="PUT">
-                PUT
-              </option>
-              <option value="DELETE">
-                DELETE
-              </option>
-            </select>
-          </div>
-
-          <div class="form-section">
-            <label class="form-label">请求头 (JSON)</label>
-            <textarea 
-              v-model="nodeProperties.headers" 
-              class="form-textarea"
-              placeholder="{&quot;Content-Type&quot;: &quot;application/json&quot;}"
-              rows="3"
-              @input="updateProperties"
-            />
-          </div>
-
+      <template v-if="selectedEdge && !selectedNode">
+        <div class="node-header">
           <div
-            v-if="nodeProperties.method !== 'GET'"
-            class="form-section"
+            class="node-type-badge"
+            :style="{ borderColor: '#6c757d' }"
           >
-            <label class="form-label">请求体 (JSON)</label>
-            <textarea 
-              v-model="nodeProperties.body" 
-              class="form-textarea"
-              placeholder="{&quot;key&quot;: &quot;value&quot;}"
-              rows="4"
-              @input="updateProperties"
-            />
+            <span class="badge-label">连线</span>
           </div>
-        </template>
+        </div>
 
-        <!-- 视频下载配置 -->
-        <template v-if="nodeProperties.agentType === 'video-download'">
-          <div class="form-section">
-            <label class="form-label">平台</label>
+        <div class="form-section">
+          <label class="form-label">连线ID</label>
+          <input
+            type="text"
+            class="form-input"
+            :value="selectedEdge.id"
+            disabled
+          >
+        </div>
+
+        <div class="form-section">
+          <label class="form-label">来源节点</label>
+          <input
+            type="text"
+            class="form-input"
+            :value="selectedEdge.sourceNodeId"
+            disabled
+          >
+        </div>
+
+        <div class="form-section">
+          <label class="form-label">目标节点</label>
+          <input
+            type="text"
+            class="form-input"
+            :value="selectedEdge.targetNodeId"
+            disabled
+          >
+        </div>
+
+        <div class="form-section">
+          <label class="form-label">分支条件</label>
+          <template v-if="canSetEdgeBranchCondition">
             <select
-              v-model="nodeProperties.platform"
+              v-model="edgeProperties.condition"
               class="form-select"
-              @change="updateProperties"
+              @change="updateEdgeProperties"
             >
-              <option value="douyin">
-                抖音
+              <option value="">
+                不设置
               </option>
-              <option value="kuaishou">
-                快手
+              <option value="true">
+                true 分支
               </option>
-              <option value="bilibili">
-                哔哩哔哩
-              </option>
-              <option value="youtube">
-                YouTube
+              <option value="false">
+                false 分支
               </option>
             </select>
-          </div>
-
-          <div class="form-section">
-            <label class="form-label">视频URL</label>
-            <input 
-              v-model="nodeProperties.videoUrl" 
+          </template>
+          <template v-else>
+            <input
               type="text"
               class="form-input"
-              placeholder="https://v.douyin.com/..."
-              @input="updateProperties"
+              value="仅从条件分支节点引出的连线可设置分支条件"
+              disabled
             >
-          </div>
-
-          <div class="form-section">
-            <label class="form-label">下载质量</label>
-            <select
-              v-model="nodeProperties.quality"
-              class="form-select"
-              @change="updateProperties"
-            >
-              <option value="high">
-                高清
-              </option>
-              <option value="medium">
-                标清
-              </option>
-              <option value="low">
-                流畅
-              </option>
-            </select>
-          </div>
-        </template>
-
-        <!-- 数据处理配置 -->
-        <template v-if="nodeProperties.agentType === 'data-processor'">
-          <div class="form-section">
-            <label class="form-label">处理操作</label>
-            <select
-              v-model="nodeProperties.operation"
-              class="form-select"
-              @change="updateProperties"
-            >
-              <option value="transform">
-                转换
-              </option>
-              <option value="filter">
-                过滤
-              </option>
-              <option value="aggregate">
-                聚合
-              </option>
-              <option value="sort">
-                排序
-              </option>
-            </select>
-          </div>
-
-          <div class="form-section">
-            <label class="form-label">输入数据 (JSON)</label>
-            <textarea 
-              v-model="nodeProperties.inputData" 
-              class="form-textarea"
-              placeholder="{&quot;data&quot;: [...]}"
-              rows="4"
-              @input="updateProperties"
-            />
-          </div>
-        </template>
-
-        <!-- 自定义Agent配置 -->
-        <template v-if="nodeProperties.agentType === 'custom'">
-          <div class="form-section">
-            <label class="form-label">Agent名称</label>
-            <input 
-              v-model="nodeProperties.agentName" 
-              type="text" 
-              class="form-input"
-              placeholder="输入Agent名称"
-              @input="updateProperties"
-            >
-          </div>
-
-          <div class="form-section">
-            <label class="form-label">配置参数 (JSON)</label>
-            <textarea 
-              v-model="nodeProperties.customConfig" 
-              class="form-textarea"
-              placeholder="{&quot;param1&quot;: &quot;value1&quot;}"
-              rows="4"
-              @input="updateProperties"
-            />
-          </div>
-        </template>
+          </template>
+        </div>
       </template>
 
-      <!-- 条件节点配置 -->
-      <template v-if="actualNodeType === 'condition'">
+      <template v-if="selectedNode">
+        <div class="node-header">
+          <div
+            class="node-type-badge"
+            :style="{ borderColor: nodeTypeInfo.color }"
+          >
+            <span class="badge-label">{{ nodeTypeInfo.label }}</span>
+          </div>
+        </div>
+
+        <!-- 基础信息 -->
         <div class="form-section">
-          <label class="form-label">条件表达式</label>
-          <input 
-            v-model="nodeProperties.expression" 
-            type="text" 
+          <label class="form-label">节点ID</label>
+          <input
+            type="text"
             class="form-input"
-            placeholder="例如: value > 10"
+            :value="selectedNode.id"
+            disabled
+          >
+        </div>
+
+        <div class="form-section">
+          <label class="form-label">节点名称</label>
+          <input
+            v-model="nodeProperties.text"
+            type="text"
+            class="form-input"
+            placeholder="输入节点名称"
             @input="updateProperties"
           >
         </div>
 
-        <div class="conditions-list">
-          <div class="list-header">
-            <span class="list-title">分支条件</span>
-            <button
-              class="add-btn"
-              @click="addCondition"
-            >
-              + 添加
-            </button>
-          </div>
-          
-          <div 
-            v-for="(condition, index) in nodeProperties.conditions" 
-            :key="index"
-            class="condition-item"
-          >
-            <input 
-              v-model="condition.name" 
-              type="text" 
-              class="condition-input"
-              placeholder="分支名称"
-              @input="updateProperties"
-            >
-            <input 
-              v-model="condition.expression" 
-              type="text" 
-              class="condition-input"
-              placeholder="条件表达式"
-              @input="updateProperties"
-            >
-            <button
-              class="remove-btn"
-              @click="removeCondition(index)"
-            >
-              ✕
-            </button>
-          </div>
-        </div>
-      </template>
-
-      <!-- 子流程节点配置 -->
-      <template v-if="actualNodeType === 'subprocess'">
-        <div class="form-section">
-          <label class="form-label">子流程ID</label>
-          <select
-            v-model="nodeProperties.workflowId"
-            class="form-select"
-            @change="updateProperties"
-          >
-            <option value="">
-              选择子流程
-            </option>
-            <option
-              v-for="workflow in workflows"
-              :key="workflow.id"
-              :value="workflow.id"
-            >
-              {{ workflow.name }}
-            </option>
-          </select>
-        </div>
-      </template>
-
-      <!-- 并行节点配置 -->
-      <template v-if="actualNodeType === 'parallel'">
-        <div class="form-section">
-          <label class="form-label">
-            <input 
-              v-model="nodeProperties.waitAll" 
-              type="checkbox"
+        <!-- Agent节点配置 -->
+        <template v-if="actualNodeType === 'agent'">
+          <div class="form-section">
+            <label class="form-label">Agent类型</label>
+            <select
+              v-model="nodeProperties.agentType"
+              class="form-select"
               @change="updateProperties"
             >
-            等待所有分支完成
-          </label>
+              <option value="llm">
+                LLM智能体
+              </option>
+              <option value="http">
+                HTTP请求
+              </option>
+              <option value="video-download">
+                视频下载
+              </option>
+              <option value="data-processor">
+                数据处理
+              </option>
+              <option value="custom">
+                自定义
+              </option>
+            </select>
+          </div>
+
+          <!-- LLM配置 -->
+          <template v-if="nodeProperties.agentType === 'llm'">
+            <div class="form-section">
+              <label class="form-label">LLM提供商</label>
+              <select
+                v-model="nodeProperties.llmProvider"
+                class="form-select"
+                @change="updateProperties"
+              >
+                <option value="deepseek">
+                  DeepSeek
+                </option>
+                <option value="chatgpt">
+                  ChatGPT
+                </option>
+                <option value="claude">
+                  Claude
+                </option>
+              </select>
+            </div>
+
+            <div class="form-section">
+              <label class="form-label">API Key (可选,不填使用模拟)</label>
+              <input
+                v-model="nodeProperties.apiKey"
+                type="password"
+                class="form-input"
+                placeholder="sk-..."
+                @input="updateProperties"
+              >
+            </div>
+
+            <div class="form-section">
+              <label class="form-label">提示词</label>
+              <textarea
+                v-model="nodeProperties.prompt"
+                class="form-textarea"
+                placeholder="输入LLM提示词..."
+                rows="4"
+                @input="updateProperties"
+              />
+            </div>
+
+            <div class="form-section">
+              <label class="form-label">系统提示词</label>
+              <textarea
+                v-model="nodeProperties.systemPrompt"
+                class="form-textarea"
+                placeholder="定义LLM角色和行为..."
+                rows="2"
+                @input="updateProperties"
+              />
+            </div>
+
+            <div class="form-section">
+              <label class="form-label">温度 ({{ nodeProperties.temperature }})</label>
+              <input
+                v-model="nodeProperties.temperature"
+                type="range"
+                class="form-range"
+                min="0"
+                max="1"
+                step="0.1"
+                @input="updateProperties"
+              >
+            </div>
+
+            <div class="form-section">
+              <label class="form-label">最大Token数</label>
+              <input
+                v-model="nodeProperties.maxTokens"
+                type="number"
+                class="form-input"
+                min="1"
+                max="4000"
+                @input="updateProperties"
+              >
+            </div>
+          </template>
+
+          <!-- HTTP请求配置 -->
+          <template v-if="nodeProperties.agentType === 'http'">
+            <div class="form-section">
+              <label class="form-label">请求URL</label>
+              <input
+                v-model="nodeProperties.url"
+                type="text"
+                class="form-input"
+                placeholder="https://api.example.com/data"
+                @input="updateProperties"
+              >
+            </div>
+
+            <div class="form-section">
+              <label class="form-label">请求方法</label>
+              <select
+                v-model="nodeProperties.method"
+                class="form-select"
+                @change="updateProperties"
+              >
+                <option value="GET">
+                  GET
+                </option>
+                <option value="POST">
+                  POST
+                </option>
+                <option value="PUT">
+                  PUT
+                </option>
+                <option value="DELETE">
+                  DELETE
+                </option>
+              </select>
+            </div>
+
+            <div class="form-section">
+              <label class="form-label">请求头 (JSON)</label>
+              <textarea
+                v-model="nodeProperties.headers"
+                class="form-textarea"
+                placeholder="{&quot;Content-Type&quot;: &quot;application/json&quot;}"
+                rows="3"
+                @input="updateProperties"
+              />
+            </div>
+
+            <div
+              v-if="nodeProperties.method !== 'GET'"
+              class="form-section"
+            >
+              <label class="form-label">请求体 (JSON)</label>
+              <textarea
+                v-model="nodeProperties.body"
+                class="form-textarea"
+                placeholder="{&quot;key&quot;: &quot;value&quot;}"
+                rows="4"
+                @input="updateProperties"
+              />
+            </div>
+          </template>
+
+          <!-- 视频下载配置 -->
+          <template v-if="nodeProperties.agentType === 'video-download'">
+            <div class="form-section">
+              <label class="form-label">平台</label>
+              <select
+                v-model="nodeProperties.platform"
+                class="form-select"
+                @change="updateProperties"
+              >
+                <option value="douyin">
+                  抖音
+                </option>
+                <option value="kuaishou">
+                  快手
+                </option>
+                <option value="bilibili">
+                  哔哩哔哩
+                </option>
+                <option value="youtube">
+                  YouTube
+                </option>
+              </select>
+            </div>
+
+            <div class="form-section">
+              <label class="form-label">视频URL</label>
+              <input
+                v-model="nodeProperties.videoUrl"
+                type="text"
+                class="form-input"
+                placeholder="https://v.douyin.com/..."
+                @input="updateProperties"
+              >
+            </div>
+
+            <div class="form-section">
+              <label class="form-label">下载质量</label>
+              <select
+                v-model="nodeProperties.quality"
+                class="form-select"
+                @change="updateProperties"
+              >
+                <option value="high">
+                  高清
+                </option>
+                <option value="medium">
+                  标清
+                </option>
+                <option value="low">
+                  流畅
+                </option>
+              </select>
+            </div>
+          </template>
+
+          <!-- 数据处理配置 -->
+          <template v-if="nodeProperties.agentType === 'data-processor'">
+            <div class="form-section">
+              <label class="form-label">处理操作</label>
+              <select
+                v-model="nodeProperties.operation"
+                class="form-select"
+                @change="updateProperties"
+              >
+                <option value="transform">
+                  转换
+                </option>
+                <option value="filter">
+                  过滤
+                </option>
+                <option value="aggregate">
+                  聚合
+                </option>
+                <option value="sort">
+                  排序
+                </option>
+              </select>
+            </div>
+
+            <div class="form-section">
+              <label class="form-label">输入数据 (JSON)</label>
+              <textarea
+                v-model="nodeProperties.inputData"
+                class="form-textarea"
+                placeholder="{&quot;data&quot;: [...]}"
+                rows="4"
+                @input="updateProperties"
+              />
+            </div>
+          </template>
+
+          <!-- 自定义Agent配置 -->
+          <template v-if="nodeProperties.agentType === 'custom'">
+            <div class="form-section">
+              <label class="form-label">Agent名称</label>
+              <input
+                v-model="nodeProperties.agentName"
+                type="text"
+                class="form-input"
+                placeholder="输入Agent名称"
+                @input="updateProperties"
+              >
+            </div>
+
+            <div class="form-section">
+              <label class="form-label">配置参数 (JSON)</label>
+              <textarea
+                v-model="nodeProperties.customConfig"
+                class="form-textarea"
+                placeholder="{&quot;param1&quot;: &quot;value1&quot;}"
+                rows="4"
+                @input="updateProperties"
+              />
+            </div>
+          </template>
+        </template>
+
+        <!-- 条件节点配置 -->
+        <template v-if="actualNodeType === 'condition'">
+          <div class="form-section">
+            <label class="form-label">条件表达式</label>
+            <input
+              v-model="nodeProperties.expression"
+              type="text"
+              class="form-input"
+              placeholder="例如: value > 10"
+              @input="updateProperties"
+            >
+          </div>
+        </template>
+
+        <!-- 子流程节点配置 -->
+        <template v-if="actualNodeType === 'subprocess'">
+          <div class="form-section">
+            <label class="form-label">子流程ID</label>
+            <select
+              v-model="nodeProperties.workflowId"
+              class="form-select"
+              @change="updateProperties"
+            >
+              <option value="">
+                选择子流程
+              </option>
+              <option
+                v-for="workflow in workflows"
+                :key="workflow.id"
+                :value="workflow.id"
+              >
+                {{ workflow.name }}
+              </option>
+            </select>
+          </div>
+        </template>
+
+        <!-- 并行节点配置 -->
+        <template v-if="actualNodeType === 'parallel'">
+          <div class="form-section">
+            <label class="form-label">
+              <input
+                v-model="nodeProperties.waitAll"
+                type="checkbox"
+                @change="updateProperties"
+              >
+              等待所有分支完成
+            </label>
+          </div>
+        </template>
+
+        <!-- 调试选项 -->
+        <div
+          v-if="mode === 'debug'"
+          class="debug-section"
+        >
+          <div class="section-header">
+            <span class="section-title">调试选项</span>
+          </div>
+          <button
+            class="breakpoint-btn"
+            :class="{ active: hasBreakpoint }"
+            @click="toggleBreakpoint"
+          >
+            <span>{{ hasBreakpoint ? '移除断点' : '添加断点' }}</span>
+          </button>
         </div>
       </template>
-
-      <!-- 调试选项 -->
-      <div
-        v-if="mode === 'debug'"
-        class="debug-section"
-      >
-        <div class="section-header">
-          <span class="section-title">调试选项</span>
-        </div>
-        <button 
-          class="breakpoint-btn"
-          :class="{ active: hasBreakpoint }"
-          @click="toggleBreakpoint"
-        >
-          <span>{{ hasBreakpoint ? '移除断点' : '添加断点' }}</span>
-        </button>
-      </div>
     </div>
   </div>
 </template>
@@ -461,10 +494,12 @@ const nodeStore = useNodeStore()
 const workflowStore = useWorkflowStore()
 
 const selectedNode = computed(() => nodeStore.selectedNode)
+const selectedEdge = computed(() => nodeStore.selectedEdge)
 const mode = computed(() => workflowStore.mode)
 const workflows = computed(() => workflowStore.workflows)
 
 const nodeProperties = ref({})
+const edgeProperties = ref({})
 
 const nodeTypeInfo = computed(() => {
   if (!selectedNode.value) return {}
@@ -483,13 +518,30 @@ const hasBreakpoint = computed(() => {
   return workflowStore.breakpoints.includes(selectedNode.value.id)
 })
 
+const canSetEdgeBranchCondition = computed(() => {
+  if (!selectedEdge.value) return false
+
+  const sourceNodeId = selectedEdge.value.sourceNodeId
+  const sourceNode = workflowStore.graphData?.nodes?.find(n => n.id === sourceNodeId)
+  if (!sourceNode) return false
+
+  const sourceType = sourceNode.properties?.customType || sourceNode.type
+  return sourceType === 'condition'
+})
+
 watch(selectedNode, (newNode) => {
   if (newNode) {
     nodeProperties.value = { ...newNode.properties || {} }
   }
 }, { immediate: true })
 
-const emit = defineEmits(['update-node'])
+watch(selectedEdge, (newEdge) => {
+  if (newEdge) {
+    edgeProperties.value = { ...newEdge.properties || {} }
+  }
+}, { immediate: true })
+
+const emit = defineEmits(['update-node', 'update-edge'])
 
 function updateProperties() {
   if (selectedNode.value) {
@@ -500,25 +552,22 @@ function updateProperties() {
   }
 }
 
+function updateEdgeProperties() {
+  if (!selectedEdge.value || !canSetEdgeBranchCondition.value) return
+
+  const nextProps = { ...edgeProperties.value }
+  if (!nextProps.condition) {
+    delete nextProps.condition
+  }
+
+  emit('update-edge', {
+    id: selectedEdge.value.id,
+    properties: nextProps
+  })
+}
+
 function closePanel() {
   nodeStore.clearSelection()
-}
-
-function addCondition() {
-  if (!nodeProperties.value.conditions) {
-    nodeProperties.value.conditions = []
-  }
-  nodeProperties.value.conditions.push({
-    name: `分支${nodeProperties.value.conditions.length + 1}`,
-    expression: '',
-    target: ''
-  })
-  updateProperties()
-}
-
-function removeCondition(index) {
-  nodeProperties.value.conditions.splice(index, 1)
-  updateProperties()
 }
 
 function toggleBreakpoint() {
@@ -677,77 +726,6 @@ function toggleBreakpoint() {
   background: var(--color-accent-primary);
   border-radius: 50%;
   cursor: pointer;
-}
-
-.conditions-list {
-  margin-top: 16px;
-  padding: 16px;
-  background: var(--color-bg-tertiary);
-  border-radius: var(--radius-md);
-}
-
-.list-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-
-.list-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
-
-.add-btn {
-  padding: 4px 12px;
-  background: var(--color-accent-primary);
-  border: none;
-  border-radius: var(--radius-sm);
-  color: var(--color-bg-primary);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.add-btn:hover {
-  background: var(--color-accent-hover);
-}
-
-.condition-item {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.condition-input {
-  flex: 1;
-  padding: 8px;
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-sm);
-  color: var(--color-text-primary);
-  font-size: 13px;
-}
-
-.remove-btn {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-sm);
-  color: var(--color-error);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.remove-btn:hover {
-  background: var(--color-error);
-  color: var(--color-text-primary);
 }
 
 .debug-section {

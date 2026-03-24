@@ -26,7 +26,10 @@
         />
       </div>
 
-      <PropertiesPanel @update-node="handleUpdateNode" />
+      <PropertiesPanel
+        @update-node="handleUpdateNode"
+        @update-edge="handleUpdateEdge"
+      />
     </div>
   </div>
 </template>
@@ -73,6 +76,12 @@ function handleGraphChange(_graphData) {
 function handleUpdateNode({ id, properties }) {
   if (canvasRef.value) {
     canvasRef.value.updateNode(id, properties)
+  }
+}
+
+function handleUpdateEdge({ id, properties }) {
+  if (canvasRef.value) {
+    canvasRef.value.updateEdge(id, properties)
   }
 }
 
